@@ -5,8 +5,35 @@
 
 #define MAX_PEOPLE 10
 
+void sort(char** dir_name, char** dir_call_num, int order) { //¾ËÆÄºª Á¤·Ä
+	char* tmp;
+	int turn;
+
+	for (int j = 0; j < order - 1; j++) {
+		turn = 0;
+
+		for (int i = 1; i < order - j; i++) {
+			if (strcmp(dir_name[turn], dir_name[i]) <= 0) {
+				//upper_name = dir_name[i];
+				turn = i;
+			}
+		}
+
+		if (turn != order - j - 1) {
+			tmp = dir_name[order - j - 1];
+			dir_name[order - j - 1] = dir_name[turn];
+			dir_name[turn] = tmp;
+
+			tmp = dir_call_num[order - j - 1];
+			dir_call_num[order - j - 1] = dir_call_num[turn];
+			dir_call_num[turn] = tmp;
+		}
+	}
+
+}
+
 int main() {
-	char system[8];
+	char system[8];	
 	int flag;
 
 	char name[10];
@@ -72,7 +99,7 @@ int main() {
 			if (find_flag == 0)
 					printf("No person named \'%s\' exists.\n", name);
 		}
-		else if (!strcmp(system, "read")) {
+		else if (!strcmp(system, "read")) { //read
 			FILE *fp;
 
 			scanf("%s", file_name);
@@ -89,28 +116,32 @@ int main() {
 
 					order++;
 				}
+
+				fclose(fp);
 			}
 			else
 				printf("Can't read directory\n");
-			
-			fclose(fp);
+		
 		}
-		else if (!strcmp(system, "save")) {
+		else if (!strcmp(system, "save")) { //save
 			FILE *fp;
-
 			scanf("%s", file_name);
+
+			sort(dir_name, dir_call_num, order);
 
 			if (fp = fopen(file_name, "w")) {
 				for (int i = 0; i < order; i++)
 					fprintf(fp, "%s %s\n", dir_name[i], dir_call_num[i]);
+
+				fclose(fp);
 			}
 			else {
 				printf("Can't save directory\n");
 			}
-
-			fclose(fp);
 		}
 		else if (!strcmp(system, "status")) {
+			sort(dir_name, dir_call_num, order);
+
 			for (int i = 0; i < order; i++) {
 				printf("%s %s\n", dir_name[i], dir_call_num[i]);
 			}
