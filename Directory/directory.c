@@ -146,7 +146,9 @@ void process_command() {
 				if (!strcmp(name, directory[i]->name)) {
 					Person *p = directory[i];
 
-					directory[i] = directory[n - 1];
+					//정렬을 흐트러뜨리지 않기 위해 하나씩 전부 당긴다
+					for (int j = i; j < n - 1; j++)
+						directory[j] = directory[j + 1];
 
 					//메모리 해제
 					free(p->name);
