@@ -160,16 +160,13 @@ void process_command() {
 				printf("No person named \'%s\' exists.\n", name);
 		}
 
-		else if (!strcmp(command, "delete")) {
+		else if (!strcmp(command, "delete")) { //delete
 			find_flag = 0;
 			name = strtok(NULL, "\0");
 
 			for (int i = 0; i < n; i++) {
 				if (!strcmp(name, directory[i].name)) {
-					directory[i].name = _strdup(directory[n-1].name);
-					directory[i].number = _strdup(directory[n-1].number);
-					directory[i].email = _strdup(directory[n-1].email);
-					directory[i].group = _strdup(directory[n-1].group);
+					directory[i] = directory[n - 1];
 
 					directory[n - 1].name = NULL;
 					directory[n - 1].number = NULL;
