@@ -13,13 +13,12 @@ typedef struct person {
 	char* group;
 } Person;
 
-Person* directory;
+Person** directory;
 
-int n = 0;
+int n;
 int find_flag;
 char *file_name;
 
-void sort(int order);
 int read_line(FILE *fp, char* str, int limit);
 void init_directory();
 void process_command();
@@ -31,39 +30,6 @@ int main() {
 	process_command();
 }
 
-void sort(int order) { //알파벳 정렬
-	char* tmp;
-	int turn;
-
-	for (int j = 0; j < order - 1; j++) {
-		turn = 0;
-
-		for (int i = 1; i < order - j; i++) {
-			if (strcmp(directory[turn].name, directory[i].name) <= 0) {
-				//upper_name = dir_name[i];
-				turn = i;
-			}
-		}
-
-		if (turn != order - j - 1) {
-			tmp = directory[order - j - 1].name;
-			directory[order - j - 1].name = directory[turn].name;
-			directory[turn].name = tmp;
-
-			tmp = directory[order - j - 1].number;
-			directory[order - j - 1].number = directory[turn].number;
-			directory[turn].number = tmp;
-
-			tmp = directory[order - j - 1].email;
-			directory[order - j - 1].email = directory[turn].email;
-			directory[turn].email = tmp;
-
-			tmp = directory[order - j - 1].group;
-			directory[order - j - 1].group = directory[turn].group;
-			directory[turn].group = tmp;
-		}
-	}
-}
 
 int read_line(FILE *fp, char* str, int limit) { //단점을 모두 보완한 문자열 입력 함수
 	int ch, i = 0;
@@ -84,7 +50,8 @@ int read_line(FILE *fp, char* str, int limit) { //단점을 모두 보완한 문자열 입력
 }
 
 void init_directory() {
-	directory = (Person*)malloc(sizeof(Person) * MAX_PEOPLE);
+	directory = (Person**)malloc(sizeof(Person*) * MAX_PEOPLE);
+	n = 0;
 }
 
 void process_command() {
@@ -129,13 +96,24 @@ void process_command() {
 				group = empty;
 
 			if (n >= MAX_PEOPLE) { //배열이 꽉 차서 재할당
-				directory = (Person*)realloc(directory, sizeof(Person) * 2 * MAX_PEOPLE);
+				directory = (Person**)realloc(directory, sizeof(Person*) * 2 * MAX_PEOPLE);
 			}
 
-			directory[n].name = _strdup(name);
-			directory[n].number = _strdup(number);
-			directory[n].email = _strdup(email);
-			directory[n].group = _strdup(group);
+			int i = n - 1;
+			//삽입 정렬
+			while (i >= 0 && strcmp(directory[i]->name, name) > 0) {
+				directory[i + 1] = directory[i];
+				i--;
+			}
+			//각각의 구조체도 메모리를 할당해줘야 함. 가장 중요!!!
+			directory[i + 1] = (Person*)malloc(sizeof(Person));
+
+			//name 빼곤 strdup를 사용하지 않는다.
+			//이미 위에서 strdup를 한 번 적용한 사본이기 때문에
+			directory[i + 1]->name = _strdup(name);
+			directory[i + 1]->number = number;
+			directory[i + 1]->email = email;
+			directory[i + 1]->group = group;
 
 			n++;
 
@@ -147,11 +125,11 @@ void process_command() {
 			name = strtok(NULL, "\0");
 
 			for (int i = 0; i < n; i++) {
-				if (!strcmp(name, directory[i].name)) {
-					printf("%s:\n", directory[i].name);
-					printf("\tPhone: %s\n", directory[i].number);
-					printf("\tEmail: %s\n", directory[i].email);
-					printf("\tGroup: %s\n", directory[i].group);
+				if (!strcmp(name, directory[i]->name)) {
+					printf("%s:\n", directory[i]->name);
+					printf("\tPhone: %s\n", directory[i]->number);
+					printf("\tEmail: %s\n", directory[i]->email);
+					printf("\tGroup: %s\n", directory[i]->group);
 					find_flag = 1;
 					break;
 				}
@@ -165,13 +143,13 @@ void process_command() {
 			name = strtok(NULL, "\0");
 
 			for (int i = 0; i < n; i++) {
-				if (!strcmp(name, directory[i].name)) {
+				if (!strcmp(name, directory[i]->name)) {
 					directory[i] = directory[n - 1];
 
-					directory[n - 1].name = NULL;
-					directory[n - 1].number = NULL;
-					directory[n - 1].email = NULL;
-					directory[n - 1].group = NULL;
+					directory[n - 1]->name = NULL;
+					directory[n - 1]->number = NULL;
+					directory[n - 1]->email = NULL;
+					directory[n - 1]->group = NULL;
 
 					n--;
 					find_flag = 1;
@@ -199,10 +177,12 @@ void process_command() {
 					email = strtok(NULL, "#");
 					group = strtok(NULL, "#");
 
-					directory[n].name = _strdup(name);
-					directory[n].number = _strdup(number);
-					directory[n].email = _strdup(email);
-					directory[n].group = _strdup(group);
+					directory[n] = (Person*)malloc(sizeof(Person));
+
+					directory[n]->name = _strdup(name);
+					directory[n]->number = _strdup(number);
+					directory[n]->email = _strdup(email);
+					directory[n]->group = _strdup(group);
 
 					n++;
 				}
@@ -215,27 +195,24 @@ void process_command() {
 			FILE *fp;
 			file_name = strtok(NULL, "\0");
 
-			sort(n);
-
 			if (file_name == NULL) {
 				printf("Enter save file name.\n");
 			}
 			else if (fp = fopen(file_name, "w")) {
 				for (int i = 0; i < n; i++)
-					fprintf(fp, "%s#%s#%s#%s#\n", directory[i].name, directory[i].number
-						, directory[i].email, directory[i].group);
+					fprintf(fp, "%s#%s#%s#%s#\n", directory[i]->name, directory[i]->number
+						, directory[i]->email, directory[i]->group);
 
 				fclose(fp);
 			}
 		}
 		else if (!strcmp(command, "status")) { //status
-			sort(n);
 
 			for (int i = 0; i < n; i++) {
-				printf("%s:\n", directory[i].name);
-				printf("\tPhone: %s\n", directory[i].number);
-				printf("\tEmail: %s\n", directory[i].email);
-				printf("\tGroup: %s\n", directory[i].group);
+				printf("%s:\n", directory[i]->name);
+				printf("\tPhone: %s\n", directory[i]->number);
+				printf("\tEmail: %s\n", directory[i]->email);
+				printf("\tGroup: %s\n", directory[i]->group);
 			}
 			printf("Total %d person.\n", n);
 		}
