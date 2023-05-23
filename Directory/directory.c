@@ -144,12 +144,16 @@ void process_command() {
 
 			for (int i = 0; i < n; i++) {
 				if (!strcmp(name, directory[i]->name)) {
+					Person *p = directory[i];
+
 					directory[i] = directory[n - 1];
 
-					directory[n - 1]->name = NULL;
-					directory[n - 1]->number = NULL;
-					directory[n - 1]->email = NULL;
-					directory[n - 1]->group = NULL;
+					//메모리 해제
+					free(p->name);
+					if (p->number != NULL) free(p->number);
+					if (p->email != NULL) free(p->email);
+					if (p->group != NULL) free(p->group);
+					free(p);
 
 					n--;
 					find_flag = 1;
